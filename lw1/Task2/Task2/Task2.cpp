@@ -54,6 +54,11 @@ Figure g_figures[FIGURE_COUNT]
 	{FigureType::Rectangle, 220, 50, 15, 100, {140, 77, 6}, {99, 58, 10}},
 };
 
+int g_selected = -1;
+
+int g_lastMouseX = 0;
+int g_lastMouseY = 0;
+
 void OnPaint(HWND hwnd)
 {
 	PAINTSTRUCT ps;
@@ -62,7 +67,6 @@ void OnPaint(HWND hwnd)
 	GetClientRect(hwnd, &rcClient);
 	int centerX = rcClient.right / 2;
 	int centerY = rcClient.bottom / 2;
-	POINT triangle[3];
 
 	for (int i = 0; i < FIGURE_COUNT; i++)
 	{
@@ -84,12 +88,15 @@ void OnPaint(HWND hwnd)
 				centerX + g_figures[i].left + g_figures[i].width, centerY + g_figures[i].top + g_figures[i].height);
 			break;
 		case FigureType::Triangle:
+		{
+			POINT triangle[3];
 			triangle[0] = { centerX + g_figures[i].left + g_figures[i].width / 2, centerY + g_figures[i].top };
 			triangle[1] = { centerX + g_figures[i].left, centerY + g_figures[i].top + g_figures[i].height };
 			triangle[2] = { centerX + g_figures[i].left + g_figures[i].width, centerY + g_figures[i].top + g_figures[i].height };
 
 			Polygon(dc, triangle, 3);
-			break;
+		}
+		break;
 		case FigureType::Ellipse:
 			Ellipse(dc, centerX + g_figures[i].left, centerY + g_figures[i].top,
 				centerX + g_figures[i].left + g_figures[i].width, centerY + g_figures[i].top + g_figures[i].height);
@@ -106,34 +113,66 @@ void OnPaint(HWND hwnd)
 	}
 
 	EndPaint(hwnd, &ps);
-	//PAINTSTRUCT ps;
-	//HDC dc = BeginPaint(hwnd, &ps);
+}
 
-	//// Создаем перо и выбираем его в контексте устройства
-	//HPEN pen = CreatePen(PS_SOLID, 2, RGB(255, 0, 0));
-	//HPEN oldPen = SelectPen(dc, pen);
+void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+{
+	RECT rcClient;
+	GetClientRect(hwnd, &rcClient);
+	int mouseX = x - rcClient.right / 2;
+	int mouseY = y - rcClient.bottom / 2;
 
-	//// Получаем размеры клиентской области окна и находим его центр
-	//RECT rcClient;
-	//GetClientRect(hwnd, &rcClient);
-	//int centerX = rcClient.right / 2;
-	//int centerY = rcClient.bottom / 2;
-	//// вычисляем угол вращения стрелки в радианах
-	//double angleInRadians = g_rotationAngle * M_PI / 180.0;
+	for (int i = FIGURE_COUNT - 1; i >= 0; i--)
+	{
+		if (g_figures[i].left <= mouseX
+			&& mouseX <= g_figures[i].left + g_figures[i].width
+			&& g_figures[i].top <= mouseY
+			&& mouseY <= g_figures[i].top + g_figures[i].height)
+		{
+			g_selected = i;
 
-	//// рисуем стрелку
-	//MoveToEx(dc, centerX, centerY, NULL);
-	//LineTo(
-	//	dc,
-	//	int(centerX + 100 * cos(angleInRadians)),
-	//	int(centerY + 100 * sin(angleInRadians))
-	//);
+			g_lastMouseX = mouseX;
+			g_lastMouseY = mouseY;
 
-	//// Восстанавливаем ранее выбранное перо и удаляем наше
-	//SelectPen(dc, oldPen);
-	//DeletePen(pen);
+			SetCapture(hwnd);
+			return;
+		}
+	}
+}
 
-	//EndPaint(hwnd, &ps);
+void OnMouseMove(HWND hwnd, int x, int y, UINT keyFlags)
+{
+	if (g_selected == -1 || g_selected >= FIGURE_COUNT)
+	{
+		return;
+	}
+
+	RECT rcClient;
+	GetClientRect(hwnd, &rcClient);
+	int mouseX = x - rcClient.right / 2;
+	int mouseY = y - rcClient.bottom / 2;
+
+	int dx = mouseX - g_lastMouseX;
+	int dy = mouseY - g_lastMouseY;
+
+	g_lastMouseX = mouseX;
+	g_lastMouseY = mouseY;
+
+	g_figures[g_selected].left += dx;
+	g_figures[g_selected].top += dy;
+
+	InvalidateRect(hwnd, NULL, TRUE);
+	UpdateWindow(hwnd);
+}
+
+void OnLButtonUp(HWND hwnd, int x, int y, UINT keyFlags)
+{
+	if (g_selected != -1)
+	{
+		g_selected = -1;
+	}
+
+	ReleaseCapture();
 }
 
 LRESULT CALLBACK WindowProc(
@@ -146,6 +185,9 @@ LRESULT CALLBACK WindowProc(
 	{
 		HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
 		HANDLE_MSG(hwnd, WM_PAINT, OnPaint);
+		HANDLE_MSG(hwnd, WM_LBUTTONDOWN, OnLButtonDown);
+		HANDLE_MSG(hwnd, WM_MOUSEMOVE, OnMouseMove);
+		HANDLE_MSG(hwnd, WM_LBUTTONUP, OnLButtonUp);
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
