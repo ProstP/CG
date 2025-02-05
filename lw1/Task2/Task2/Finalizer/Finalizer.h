@@ -1,5 +1,5 @@
 #pragma once
-// Класс, который автоматизирует вызов функции при выходе из области видимости
+
 template <typename Fn>
 class Finalizer
 {
