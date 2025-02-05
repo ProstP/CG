@@ -127,15 +127,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Finalizer\Finalizer.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="Store\FigureStore.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Task2.h" />
+    <ClInclude Include="View\View.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Store\FigureStore.cpp" />
     <ClCompile Include="Task2.cpp" />
+    <ClCompile Include="View\View.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Task2.rc" />

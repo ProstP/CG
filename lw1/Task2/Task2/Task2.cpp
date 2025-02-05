@@ -4,6 +4,7 @@
 #include <math.h>
 #include <string>
 #include "Store/FigureStore.h"
+#include "View/View.h"
 
 TCHAR const CLASS_NAME[] = _T("MainWndClass");
 TCHAR const WINDOW_TITLE[] = _T("Task2");
@@ -13,13 +14,7 @@ void OnDestroy(HWND hWnd)
 	PostQuitMessage(0);
 }
 
-int g_selected = -1;
-// Избавится от глобальных переменных
-
-int g_lastMouseX = 0;
-int g_lastMouseY = 0;
-
-void OnPaint(HWND hwnd)
+void OnPaint(HWND hwnd, View& view)
 {
 	PAINTSTRUCT ps;
 	HDC dc = BeginPaint(hwnd, &ps);
@@ -30,36 +25,42 @@ void OnPaint(HWND hwnd)
 
 	for (int i = 0; i < FigureStore::FIGURE_COUNT; i++)
 	{
-		HPEN pen = CreatePen(PS_SOLID, 3, RGB(g_figures[i].borderColor.R, g_figures[i].borderColor.G, g_figures[i].borderColor.B));
+		Figure figure = view.GetStore().GetFigure(i);
+
+		HPEN pen = CreatePen(PS_SOLID, 3, RGB(figure.borderColor.R,
+			figure.borderColor.G,
+			figure.borderColor.B));
 
 		LOGBRUSH brushInfo;
 		brushInfo.lbStyle = BS_SOLID;
-		brushInfo.lbColor = RGB(g_figures[i].fillColor.R, g_figures[i].fillColor.G, g_figures[i].fillColor.B);
+		brushInfo.lbColor = RGB(figure.fillColor.R,
+			figure.fillColor.G,
+			figure.fillColor.B);
 		brushInfo.lbHatch = 0;
 		HBRUSH brush = CreateBrushIndirect(&brushInfo);
 
 		HPEN oldPen = SelectPen(dc, pen);
 		HBRUSH oldBrush = SelectBrush(dc, brush);
 
-		switch (g_figures[i].type)
+		switch (figure.type)
 		{
 		case FigureType::Rectangle:
-			Rectangle(dc, centerX + g_figures[i].left, centerY + g_figures[i].top,
-				centerX + g_figures[i].left + g_figures[i].width, centerY + g_figures[i].top + g_figures[i].height);
+			Rectangle(dc, centerX + figure.left, centerY + figure.top,
+				centerX + figure.left + figure.width, centerY + figure.top + figure.height);
 			break;
 		case FigureType::Triangle:
 		{
 			POINT triangle[3];
-			triangle[0] = { centerX + g_figures[i].left + g_figures[i].width / 2, centerY + g_figures[i].top };
-			triangle[1] = { centerX + g_figures[i].left, centerY + g_figures[i].top + g_figures[i].height };
-			triangle[2] = { centerX + g_figures[i].left + g_figures[i].width, centerY + g_figures[i].top + g_figures[i].height };
+			triangle[0] = { centerX + figure.left + figure.width / 2, centerY + figure.top };
+			triangle[1] = { centerX + figure.left, centerY + figure.top + figure.height };
+			triangle[2] = { centerX + figure.left + figure.width, centerY + figure.top + figure.height };
 
 			Polygon(dc, triangle, 3);
 		}
 		break;
 		case FigureType::Ellipse:
-			Ellipse(dc, centerX + g_figures[i].left, centerY + g_figures[i].top,
-				centerX + g_figures[i].left + g_figures[i].width, centerY + g_figures[i].top + g_figures[i].height);
+			Ellipse(dc, centerX + figure.left, centerY + figure.top,
+				centerX + figure.left + figure.width, centerY + figure.top + figure.height);
 			break;
 		default:
 			break;
@@ -75,6 +76,7 @@ void OnPaint(HWND hwnd)
 	EndPaint(hwnd, &ps);
 }
 
+/*
 void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 {
 	RECT rcClient;
@@ -133,21 +135,37 @@ void OnLButtonUp(HWND hwnd, int x, int y, UINT keyFlags)
 	}
 
 	ReleaseCapture();
-}
+}*/
 
-LRESULT CALLBACK WindowProc(
+static LRESULT CALLBACK WindowProc(
 	HWND hwnd,
 	UINT uMsg,
 	WPARAM wParam,
 	LPARAM lParam)
 {
+	View* view;
+	if (uMsg == WM_NCCREATE)
+	{
+		CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+		view = reinterpret_cast<View*>(pCreate->lpCreateParams);
+		SetWindowLongPtr(hwnd, GWLP_USERDATA, reinterpret_cast<LONG_PTR>(view));
+	}
+	else
+	{
+		view = reinterpret_cast<View*>(GetWindowLongPtr(hwnd, GWLP_USERDATA));
+	}
+
 	switch (uMsg)
 	{
 		HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
-		HANDLE_MSG(hwnd, WM_PAINT, OnPaint);
-		HANDLE_MSG(hwnd, WM_LBUTTONDOWN, OnLButtonDown);
-		HANDLE_MSG(hwnd, WM_MOUSEMOVE, OnMouseMove);
-		HANDLE_MSG(hwnd, WM_LBUTTONUP, OnLButtonUp);
+	case  WM_PAINT:
+		OnPaint(hwnd, *view);
+		break;
+
+		//HANDLE_MSG(hwnd, WM_PAINT, OnPaint);
+		//HANDLE_MSG(hwnd, WM_LBUTTONDOWN, OnLButtonDown);
+		//HANDLE_MSG(hwnd, WM_MOUSEMOVE, OnMouseMove);
+		//HANDLE_MSG(hwnd, WM_LBUTTONUP, OnLButtonUp);
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);
@@ -173,7 +191,7 @@ bool RegisterWndClass(HINSTANCE hInstance)
 	return RegisterClassEx(&wndClass) != FALSE;
 }
 
-HWND CreateMainWindow(HINSTANCE hInstance)
+HWND CreateMainWindow(HINSTANCE hInstance, View& view)
 {
 	HWND hMainWindow = CreateWindowEx(
 		0,                                  // расширенные стили окна
@@ -185,7 +203,7 @@ HWND CreateMainWindow(HINSTANCE hInstance)
 		NULL,                           // дескриптор родительского окна
 		NULL,                           // дескриптор меню
 		hInstance,
-		NULL);                          // доп. параметры окна
+		&view);                          // доп. параметры окна
 
 	// Тут в доп параметры опрокинуть ссылку на изменеяемый объект
 
@@ -200,22 +218,15 @@ int MainLoop()
 	{
 		if (res == -1)
 		{
-			// произошла ошибка - нужно обработать ее и, вероятно,
-			// завершить работу приложения
+			return 1;
 		}
 		else
 		{
-			// Если это сообщение о нажатии виртуальной клавиши,
-			// то добавляем в очередь сообщений сообщения, несущие информацию о
-			// коде вводимого пользователем символа
 			TranslateMessage(&msg);
-			// передаем сообщение в соответствующую оконную процедуру
 			DispatchMessage(&msg);
 		}
 	}
-	// сюда мы попадем только в том случае извлечения сообщения WM_QUIT
-	// msg.wParam содержит код возврата, помещенный при помощи функции
-	// PostQuitMessage()
+
 	return static_cast<int>(msg.wParam);
 }
 
@@ -225,24 +236,22 @@ int WINAPI WinMain(
 	LPSTR /*lpCmdLine*/,
 	int nCmdShow)
 {
-	// Регистрируем класс главного окна
 	if (!RegisterWndClass(hInstance))
 	{
 		return 1;
 	}
 
-	// Создаем главное окно приложения
-	HWND hMainWindow = CreateMainWindow(hInstance);
+	FigureStore store;
+	View view(store);
+
+	HWND hMainWindow = CreateMainWindow(hInstance, view);
 	if (hMainWindow == NULL)
 	{
 		return 1;
 	}
 
-	// Показываем главное окно приложения
 	ShowWindow(hMainWindow, nCmdShow);
 	UpdateWindow(hMainWindow);
 
-	// Запускаем цикл выборки сообщений, пока не получим
-	// сигнал о завершении приложения
 	return MainLoop();
 }
