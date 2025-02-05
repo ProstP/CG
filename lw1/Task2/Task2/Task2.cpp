@@ -86,6 +86,7 @@ void OnLButtonDown(HWND hwnd, int x, int y, View& view)
 	int mouseX = x - rcClient.right / 2;
 	int mouseY = y - rcClient.bottom / 2;
 
+	// Не известно нужна ли вообще эта проверка
 	if (view.GetStore().IsClickToFigures(mouseX, mouseY))
 	{
 		view.MouseDown(mouseX, mouseY);
