@@ -56,5 +56,9 @@ private:
 
 	int m_offsetX = 0;
 	int m_offsetY = 0;
+
+	static bool IsClickToRectangle(int left, int top, int width, int height, int mouseX, int mouseY);
+	static bool IsClickToTriangle(int left, int top, int width, int height, int mouseX, int mouseY);
+	static bool IsClickToEllipse(int left, int top, int width, int height, int mouseX, int mouseY);
 };
 
