@@ -35,5 +35,5 @@ private:
 template <typename Fn>
 [[nodiscard]] auto Finally(Fn&& fn)
 {
-	return detail::Finalizer<std::decay_t<Fn>>(std::forward<Fn>(fn));
+	return Finalizer<std::decay_t<Fn>>(std::forward<Fn>(fn));
 }

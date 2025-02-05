@@ -5,6 +5,8 @@
 #include <string>
 #include "Store/FigureStore.h"
 #include "View/View.h"
+#include "Task2.h"
+#include "Finalizer/Finalizer.h"
 
 TCHAR const CLASS_NAME[] = _T("MainWndClass");
 TCHAR const WINDOW_TITLE[] = _T("Task2");
@@ -14,7 +16,32 @@ void OnDestroy(HWND hWnd)
 	PostQuitMessage(0);
 }
 
-void OnPaint(HWND hwnd, View& view)
+void PaintReactangle(HDC dc, int centerX, int centerY, Figure& figure, int offsetX, int offsetY)
+{
+	Rectangle(dc, centerX + figure.left + offsetX, centerY + figure.top + offsetY,
+		centerX + figure.left + figure.width + offsetX, centerY + figure.top + figure.height + offsetY);
+}
+
+void PaintTriangle(HDC dc, int centerX, int centerY, Figure& figure, int offsetX, int offsetY)
+{
+	POINT triangle[3];
+	triangle[0] = { centerX + figure.left + figure.width / 2 + offsetX,
+		centerY + figure.top + offsetY };
+	triangle[1] = { centerX + figure.left + offsetX,
+		centerY + figure.top + figure.height + offsetY };
+	triangle[2] = { centerX + figure.left + figure.width + offsetX,
+		centerY + figure.top + figure.height + offsetY };
+
+	Polygon(dc, triangle, 3);
+}
+
+void PaintEllipse(HDC dc, int centerX, int centerY, Figure& figure, int offsetX, int offsetY)
+{
+	Ellipse(dc, centerX + figure.left + offsetX, centerY + figure.top + offsetY,
+		centerX + figure.left + figure.width + offsetX, centerY + figure.top + figure.height + offsetY);
+}
+
+static void OnPaint(HWND hwnd, View& view)
 {
 	PAINTSTRUCT ps;
 	HDC dc = BeginPaint(hwnd, &ps);
@@ -39,47 +66,37 @@ void OnPaint(HWND hwnd, View& view)
 		brushInfo.lbHatch = 0;
 		HBRUSH brush = CreateBrushIndirect(&brushInfo);
 
-		HPEN oldPen = SelectPen(dc, pen);
-		HBRUSH oldBrush = SelectBrush(dc, brush);
+		auto restoreOldPen = Finally([dc, oldPen = SelectObject(dc, pen), pen]
+			{
+				SelectObject(dc, oldPen);
+				DeleteObject(pen);
+			});
+		auto restoreOldBrush = Finally([dc, oldBrush = SelectObject(dc, brush), brush]
+			{
+				SelectObject(dc, oldBrush);
+				DeleteObject(brush);
+			});
 
 		switch (figure.type)
 		{
 			case FigureType::Rectangle:
-				Rectangle(dc, centerX + figure.left + view.GetStore().GetOffsetX(), centerY + figure.top + view.GetStore().GetOffsetY(),
-					centerX + figure.left + figure.width + view.GetStore().GetOffsetX(), centerY + figure.top + figure.height + view.GetStore().GetOffsetY());
+				PaintReactangle(dc, centerX, centerY, figure, view.GetStore().GetOffsetX(), view.GetStore().GetOffsetY());
 				break;
 			case FigureType::Triangle:
-			{
-				POINT triangle[3];
-				triangle[0] = { centerX + figure.left + figure.width / 2 + view.GetStore().GetOffsetX(),
-					centerY + figure.top + view.GetStore().GetOffsetY() };
-				triangle[1] = { centerX + figure.left + view.GetStore().GetOffsetX(),
-					centerY + figure.top + figure.height + view.GetStore().GetOffsetY() };
-				triangle[2] = { centerX + figure.left + figure.width + view.GetStore().GetOffsetX(),
-					centerY + figure.top + figure.height + view.GetStore().GetOffsetY() };
-
-				Polygon(dc, triangle, 3);
-			}
-			break;
+				PaintTriangle(dc, centerX, centerY, figure, view.GetStore().GetOffsetX(), view.GetStore().GetOffsetY());
+				break;
 			case FigureType::Ellipse:
-				Ellipse(dc, centerX + figure.left + view.GetStore().GetOffsetX(), centerY + figure.top + view.GetStore().GetOffsetY(),
-					centerX + figure.left + figure.width + view.GetStore().GetOffsetX(), centerY + figure.top + figure.height + view.GetStore().GetOffsetY());
+				PaintEllipse(dc, centerX, centerY, figure, view.GetStore().GetOffsetX(), view.GetStore().GetOffsetY());
 				break;
 			default:
 				break;
 		}
-
-		SelectPen(dc, oldPen);
-		SelectBrush(dc, oldBrush); // Использовать обёртку
-
-		DeletePen(pen);
-		DeleteBrush(brush);
 	}
 
 	EndPaint(hwnd, &ps);
 }
 
-void OnLButtonDown(HWND hwnd, int x, int y, View& view)
+static void OnLButtonDown(HWND hwnd, int x, int y, View& view)
 {
 	RECT rcClient;
 	GetClientRect(hwnd, &rcClient);
@@ -95,7 +112,7 @@ void OnLButtonDown(HWND hwnd, int x, int y, View& view)
 	}
 }
 
-void OnMouseMove(HWND hwnd, int x, int y, View& view)
+static void OnMouseMove(HWND hwnd, int x, int y, View& view)
 {
 	if (!view.IsDraging())
 	{
@@ -114,7 +131,7 @@ void OnMouseMove(HWND hwnd, int x, int y, View& view)
 }
 
 
-void OnLButtonUp(HWND hwnd, View& view)
+static void OnLButtonUp(HWND hwnd, View& view)
 {
 	if (view.IsDraging())
 	{
