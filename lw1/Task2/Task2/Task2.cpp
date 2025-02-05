@@ -44,26 +44,29 @@ void OnPaint(HWND hwnd, View& view)
 
 		switch (figure.type)
 		{
-		case FigureType::Rectangle:
-			Rectangle(dc, centerX + figure.left, centerY + figure.top,
-				centerX + figure.left + figure.width, centerY + figure.top + figure.height);
-			break;
-		case FigureType::Triangle:
-		{
-			POINT triangle[3];
-			triangle[0] = { centerX + figure.left + figure.width / 2, centerY + figure.top };
-			triangle[1] = { centerX + figure.left, centerY + figure.top + figure.height };
-			triangle[2] = { centerX + figure.left + figure.width, centerY + figure.top + figure.height };
+			case FigureType::Rectangle:
+				Rectangle(dc, centerX + figure.left + view.GetStore().GetOffsetX(), centerY + figure.top + view.GetStore().GetOffsetY(),
+					centerX + figure.left + figure.width + view.GetStore().GetOffsetX(), centerY + figure.top + figure.height + view.GetStore().GetOffsetY());
+				break;
+			case FigureType::Triangle:
+			{
+				POINT triangle[3];
+				triangle[0] = { centerX + figure.left + figure.width / 2 + view.GetStore().GetOffsetX(),
+					centerY + figure.top + view.GetStore().GetOffsetY() };
+				triangle[1] = { centerX + figure.left + view.GetStore().GetOffsetX(),
+					centerY + figure.top + figure.height + view.GetStore().GetOffsetY() };
+				triangle[2] = { centerX + figure.left + figure.width + view.GetStore().GetOffsetX(),
+					centerY + figure.top + figure.height + view.GetStore().GetOffsetY() };
 
-			Polygon(dc, triangle, 3);
-		}
-		break;
-		case FigureType::Ellipse:
-			Ellipse(dc, centerX + figure.left, centerY + figure.top,
-				centerX + figure.left + figure.width, centerY + figure.top + figure.height);
+				Polygon(dc, triangle, 3);
+			}
 			break;
-		default:
-			break;
+			case FigureType::Ellipse:
+				Ellipse(dc, centerX + figure.left + view.GetStore().GetOffsetX(), centerY + figure.top + view.GetStore().GetOffsetY(),
+					centerX + figure.left + figure.width + view.GetStore().GetOffsetX(), centerY + figure.top + figure.height + view.GetStore().GetOffsetY());
+				break;
+			default:
+				break;
 		}
 
 		SelectPen(dc, oldPen);
@@ -76,35 +79,24 @@ void OnPaint(HWND hwnd, View& view)
 	EndPaint(hwnd, &ps);
 }
 
-/*
-void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
+void OnLButtonDown(HWND hwnd, int x, int y, View& view)
 {
 	RECT rcClient;
 	GetClientRect(hwnd, &rcClient);
 	int mouseX = x - rcClient.right / 2;
 	int mouseY = y - rcClient.bottom / 2;
 
-	for (int i = FIGURE_COUNT - 1; i >= 0; i--)
+	if (view.GetStore().IsClickToFigures(mouseX, mouseY))
 	{
-		if (g_figures[i].left <= mouseX
-			&& mouseX <= g_figures[i].left + g_figures[i].width
-			&& g_figures[i].top <= mouseY
-			&& mouseY <= g_figures[i].top + g_figures[i].height)
-		{
-			g_selected = i;
+		view.MouseDown(mouseX, mouseY);
 
-			g_lastMouseX = mouseX;
-			g_lastMouseY = mouseY;
-
-			SetCapture(hwnd);
-			return;
-		}
+		SetCapture(hwnd);
 	}
 }
 
-void OnMouseMove(HWND hwnd, int x, int y, UINT keyFlags)
+void OnMouseMove(HWND hwnd, int x, int y, View& view)
 {
-	if (g_selected == -1 || g_selected >= FigureStore::FIGURE_COUNT)
+	if (!view.IsDraging())
 	{
 		return;
 	}
@@ -114,28 +106,22 @@ void OnMouseMove(HWND hwnd, int x, int y, UINT keyFlags)
 	int mouseX = x - rcClient.right / 2;
 	int mouseY = y - rcClient.bottom / 2;
 
-	int dx = mouseX - g_lastMouseX;
-	int dy = mouseY - g_lastMouseY;
-
-	g_lastMouseX = mouseX;
-	g_lastMouseY = mouseY;
-
-	g_figures[g_selected].left += dx;
-	g_figures[g_selected].top += dy;
+	view.SetNewMousePos(mouseX, mouseY);
 
 	InvalidateRect(hwnd, NULL, TRUE);
 	UpdateWindow(hwnd);
 }
 
-void OnLButtonUp(HWND hwnd, int x, int y, UINT keyFlags)
+
+void OnLButtonUp(HWND hwnd, View& view)
 {
-	if (g_selected != -1)
+	if (view.IsDraging())
 	{
-		g_selected = -1;
+		view.MouseUp();
 	}
 
 	ReleaseCapture();
-}*/
+}
 
 static LRESULT CALLBACK WindowProc(
 	HWND hwnd,
@@ -158,14 +144,31 @@ static LRESULT CALLBACK WindowProc(
 	switch (uMsg)
 	{
 		HANDLE_MSG(hwnd, WM_DESTROY, OnDestroy);
-	case  WM_PAINT:
-		OnPaint(hwnd, *view);
+
+		case  WM_PAINT:
+			OnPaint(hwnd, *view);
+			break;
+
+		case WM_LBUTTONDOWN:
+		{
+			int x = LOWORD(lParam);
+			int y = HIWORD(lParam);
+
+			OnLButtonDown(hwnd, x, y, *view);
+		}
+		break;
+		case WM_MOUSEMOVE:
+		{
+			int x = LOWORD(lParam);
+			int y = HIWORD(lParam);
+
+			OnMouseMove(hwnd, x, y, *view);
+		}
 		break;
 
-		//HANDLE_MSG(hwnd, WM_PAINT, OnPaint);
-		//HANDLE_MSG(hwnd, WM_LBUTTONDOWN, OnLButtonDown);
-		//HANDLE_MSG(hwnd, WM_MOUSEMOVE, OnMouseMove);
-		//HANDLE_MSG(hwnd, WM_LBUTTONUP, OnLButtonUp);
+		case WM_LBUTTONUP:
+			OnLButtonUp(hwnd, *view);
+			break;
 	}
 
 	return DefWindowProc(hwnd, uMsg, wParam, lParam);

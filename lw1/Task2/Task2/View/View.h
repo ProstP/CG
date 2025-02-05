@@ -7,11 +7,10 @@ class View
 public:
 	View(FigureStore& store)
 		: m_store(store)
-		, m_isDraging(false)
 	{
 	}
 
-	void MouseDown();
+	void MouseDown(int x, int y);
 	void MouseUp();
 	void SetNewMousePos(int x, int y);
 	bool IsDraging();
@@ -19,6 +18,8 @@ public:
 
 private:
 	FigureStore& m_store;
-	bool m_isDraging;
+	bool m_isDraging = false;
+	int m_mouseX = 0;
+	int m_mouseY = 0;
 };
 

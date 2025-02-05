@@ -31,9 +31,10 @@ public:
 	const static int FIGURE_COUNT = 13;
 
 	Figure GetFigure(int index);
-	void SetOffset(int x, int y);
+	void AddOffset(int x, int y);
 	int GetOffsetX();
-	int GetOffestY();
+	int GetOffsetY();
+	bool IsClickToFigures(int x, int y);
 
 private:
 	Figure m_figures[FIGURE_COUNT]

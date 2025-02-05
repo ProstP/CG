@@ -11,10 +11,10 @@ Figure FigureStore::GetFigure(int index)
 	return m_figures[index];
 }
 
-void FigureStore::SetOffset(int x, int y)
+void FigureStore::AddOffset(int x, int y)
 {
-	m_offsetX = x;
-	m_offsetY = y;
+	m_offsetX += x;
+	m_offsetY += y;
 }
 
 int FigureStore::GetOffsetX()
@@ -22,7 +22,12 @@ int FigureStore::GetOffsetX()
 	return m_offsetX;
 }
 
-int FigureStore::GetOffestY()
+int FigureStore::GetOffsetY()
 {
 	return m_offsetY;
+}
+
+bool FigureStore::IsClickToFigures(int x, int y)
+{
+	return true;
 }
