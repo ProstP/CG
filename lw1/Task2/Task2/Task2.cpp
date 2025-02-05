@@ -3,6 +3,7 @@
 #include <windowsx.h>
 #include <math.h>
 #include <string>
+#include "Store/FigureStore.h"
 
 TCHAR const CLASS_NAME[] = _T("MainWndClass");
 TCHAR const WINDOW_TITLE[] = _T("Task2");
@@ -12,49 +13,8 @@ void OnDestroy(HWND hWnd)
 	PostQuitMessage(0);
 }
 
-enum class FigureType
-{
-	Rectangle = 0,
-	Triangle,
-	Ellipse
-};
-
-struct RGBColor
-{
-	unsigned char R;
-	unsigned char G;
-	unsigned char B;
-};
-struct Figure
-{
-	FigureType type;
-	int left;
-	int top;
-	int width;
-	int height;
-	RGBColor fillColor;
-	RGBColor borderColor;
-};
-
-const int FIGURE_COUNT = 13;
-Figure g_figures[FIGURE_COUNT]
-{
-	{FigureType::Rectangle, -500, 150, 1000, 200, {13, 158, 0}, {29, 209, 13}},
-	{FigureType::Rectangle, -300, -50, 300, 200, {197, 212, 32}, {157, 171, 0}},
-	{FigureType::Rectangle, -100, -170, 50, 100, {66, 66, 66}, {54, 54, 54}},
-	{FigureType::Triangle, -350, -150, 400, 100, {227, 91, 50}, {143, 46, 4}},
-	{FigureType::Ellipse, -250, 10, 80, 80, {98, 113, 245}, {31, 47, 191}},
-	{FigureType::Rectangle, -115, 10, 80, 140, {179, 60, 9}, {143, 46, 4}},
-	{FigureType::Ellipse, -50, 70, 10, 10, {64, 64, 64}, {77, 77, 77}},
-	{FigureType::Rectangle, 0, 70, 250, 15, {140, 77, 6}, {99, 58, 10}},
-	{FigureType::Rectangle, 0, 100, 250, 15, {140, 77, 6}, {99, 58, 10}},
-	{FigureType::Rectangle, 40, 50, 15, 100, {140, 77, 6}, {99, 58, 10}},
-	{FigureType::Rectangle, 100, 50, 15, 100, {140, 77, 6}, {99, 58, 10}},
-	{FigureType::Rectangle, 160, 50, 15, 100, {140, 77, 6}, {99, 58, 10}},
-	{FigureType::Rectangle, 220, 50, 15, 100, {140, 77, 6}, {99, 58, 10}},
-};
-
 int g_selected = -1;
+// Избавится от глобальных переменных
 
 int g_lastMouseX = 0;
 int g_lastMouseY = 0;
@@ -68,7 +28,7 @@ void OnPaint(HWND hwnd)
 	int centerX = rcClient.right / 2;
 	int centerY = rcClient.bottom / 2;
 
-	for (int i = 0; i < FIGURE_COUNT; i++)
+	for (int i = 0; i < FigureStore::FIGURE_COUNT; i++)
 	{
 		HPEN pen = CreatePen(PS_SOLID, 3, RGB(g_figures[i].borderColor.R, g_figures[i].borderColor.G, g_figures[i].borderColor.B));
 
@@ -106,7 +66,7 @@ void OnPaint(HWND hwnd)
 		}
 
 		SelectPen(dc, oldPen);
-		SelectBrush(dc, oldBrush);
+		SelectBrush(dc, oldBrush); // Использовать обёртку
 
 		DeletePen(pen);
 		DeleteBrush(brush);
@@ -142,7 +102,7 @@ void OnLButtonDown(HWND hwnd, BOOL fDoubleClick, int x, int y, UINT keyFlags)
 
 void OnMouseMove(HWND hwnd, int x, int y, UINT keyFlags)
 {
-	if (g_selected == -1 || g_selected >= FIGURE_COUNT)
+	if (g_selected == -1 || g_selected >= FigureStore::FIGURE_COUNT)
 	{
 		return;
 	}
@@ -226,6 +186,8 @@ HWND CreateMainWindow(HINSTANCE hInstance)
 		NULL,                           // дескриптор меню
 		hInstance,
 		NULL);                          // доп. параметры окна
+
+	// Тут в доп параметры опрокинуть ссылку на изменеяемый объект
 
 	return hMainWindow;
 }
