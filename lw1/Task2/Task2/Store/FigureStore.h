@@ -34,7 +34,7 @@ public:
 	void AddOffset(int x, int y);
 	int GetOffsetX();
 	int GetOffsetY();
-	bool IsClickToFigures(int x, int y);
+	bool IsClickToPicture(int x, int y);
 
 private:
 	Figure m_figures[FIGURE_COUNT]

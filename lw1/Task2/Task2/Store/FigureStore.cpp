@@ -27,7 +27,7 @@ int FigureStore::GetOffsetY()
 	return m_offsetY;
 }
 
-bool FigureStore::IsClickToFigures(int x, int y)
+bool FigureStore::IsClickToPicture(int x, int y)
 {
 	x -= m_offsetX;
 	y -= m_offsetY;

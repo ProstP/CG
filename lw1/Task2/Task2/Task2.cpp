@@ -6,7 +6,6 @@
 #include "Store/FigureStore.h"
 #include "View/View.h"
 #include "Task2.h"
-#include "Finalizer/Finalizer.h"
 
 TCHAR const CLASS_NAME[] = _T("MainWndClass");
 TCHAR const WINDOW_TITLE[] = _T("Task2");
@@ -14,31 +13,6 @@ TCHAR const WINDOW_TITLE[] = _T("Task2");
 void OnDestroy(HWND hWnd)
 {
 	PostQuitMessage(0);
-}
-
-void PaintReactangle(HDC dc, int centerX, int centerY, Figure& figure, int offsetX, int offsetY)
-{
-	Rectangle(dc, centerX + figure.left + offsetX, centerY + figure.top + offsetY,
-		centerX + figure.left + figure.width + offsetX, centerY + figure.top + figure.height + offsetY);
-}
-
-void PaintTriangle(HDC dc, int centerX, int centerY, Figure& figure, int offsetX, int offsetY)
-{
-	POINT triangle[3];
-	triangle[0] = { centerX + figure.left + figure.width / 2 + offsetX,
-		centerY + figure.top + offsetY };
-	triangle[1] = { centerX + figure.left + offsetX,
-		centerY + figure.top + figure.height + offsetY };
-	triangle[2] = { centerX + figure.left + figure.width + offsetX,
-		centerY + figure.top + figure.height + offsetY };
-
-	Polygon(dc, triangle, 3);
-}
-
-void PaintEllipse(HDC dc, int centerX, int centerY, Figure& figure, int offsetX, int offsetY)
-{
-	Ellipse(dc, centerX + figure.left + offsetX, centerY + figure.top + offsetY,
-		centerX + figure.left + figure.width + offsetX, centerY + figure.top + figure.height + offsetY);
 }
 
 static void OnPaint(HWND hwnd, View& view)
@@ -50,48 +24,7 @@ static void OnPaint(HWND hwnd, View& view)
 	int centerX = rcClient.right / 2;
 	int centerY = rcClient.bottom / 2;
 
-	for (int i = 0; i < FigureStore::FIGURE_COUNT; i++)
-	{
-		Figure figure = view.GetStore().GetFigure(i);
-
-		HPEN pen = CreatePen(PS_SOLID, 3, RGB(figure.borderColor.R,
-			figure.borderColor.G,
-			figure.borderColor.B));
-
-		LOGBRUSH brushInfo;
-		brushInfo.lbStyle = BS_SOLID;
-		brushInfo.lbColor = RGB(figure.fillColor.R,
-			figure.fillColor.G,
-			figure.fillColor.B);
-		brushInfo.lbHatch = 0;
-		HBRUSH brush = CreateBrushIndirect(&brushInfo);
-
-		auto restoreOldPen = Finally([dc, oldPen = SelectObject(dc, pen), pen]
-			{
-				SelectObject(dc, oldPen);
-				DeleteObject(pen);
-			});
-		auto restoreOldBrush = Finally([dc, oldBrush = SelectObject(dc, brush), brush]
-			{
-				SelectObject(dc, oldBrush);
-				DeleteObject(brush);
-			});
-
-		switch (figure.type)
-		{
-			case FigureType::Rectangle:
-				PaintReactangle(dc, centerX, centerY, figure, view.GetStore().GetOffsetX(), view.GetStore().GetOffsetY());
-				break;
-			case FigureType::Triangle:
-				PaintTriangle(dc, centerX, centerY, figure, view.GetStore().GetOffsetX(), view.GetStore().GetOffsetY());
-				break;
-			case FigureType::Ellipse:
-				PaintEllipse(dc, centerX, centerY, figure, view.GetStore().GetOffsetX(), view.GetStore().GetOffsetY());
-				break;
-			default:
-				break;
-		}
-	}
+	view.PaintPicture(dc, centerX, centerY);
 
 	EndPaint(hwnd, &ps);
 }
@@ -103,8 +36,8 @@ static void OnLButtonDown(HWND hwnd, int x, int y, View& view)
 	int mouseX = x - rcClient.right / 2;
 	int mouseY = y - rcClient.bottom / 2;
 
-	// Не известно нужна ли вообще эта проверка
-	if (view.GetStore().IsClickToFigures(mouseX, mouseY))
+	// Неизвестно нужна ли вообще эта проверка
+	if (view.GetStore().IsClickToPicture(mouseX, mouseY))
 	{
 		view.MouseDown(mouseX, mouseY);
 

@@ -1,4 +1,5 @@
 #pragma once
+#include <utility>
 
 template <typename Fn>
 class Finalizer
