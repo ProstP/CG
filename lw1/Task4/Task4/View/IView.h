@@ -9,8 +9,13 @@
 
 namespace View
 {
+	struct ViewData
+	{
+		char lastOpenedChar;
+		bool needChangeView;
+	};
 
-	class IView : public Observer::IObservable<char>
+	class IView : public Observer::IObservable<ViewData>
 	{
 	public:
 		virtual void OnPaint(HWND hwnd) = 0;

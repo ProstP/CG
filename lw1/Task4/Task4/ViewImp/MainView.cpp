@@ -20,6 +20,7 @@ void MainView::OnPaint(HWND hwnd)
 	PaintAlphabet(hdc, centerX, centerY);
 	PaintMistakes(hdc, centerX, centerY);
 	PaintWord(hdc, centerX, centerY);
+	PaintButtonToChangeView(hdc, centerX, centerY);
 
 	EndPaint(hwnd, &ps);
 	m_needPaint = false;
@@ -32,7 +33,8 @@ void MainView::OnLButtonDown(HWND hwnd, int x, int y)
 	int mouseX = x - rcClient.right / 2;
 	int mouseY = y - rcClient.bottom / 2;
 
-	OpenLetter(mouseX, mouseY);
+	CheckAndClickToBtn(mouseX, mouseY);
+	CheckAndOpenLetter(mouseX, mouseY);
 }
 
 void MainView::OnDestroy(HWND hwnd)
@@ -105,7 +107,7 @@ bool MainView::NeedPaint() const
 	return m_needPaint;
 }
 
-void MainView::RegisterObserver(Observer::IObserver<char>& observer)
+void MainView::RegisterObserver(Observer::IObserver<ViewData>& observer)
 {
 	m_observers.insert(&observer);
 }
@@ -299,7 +301,6 @@ void MainView::PaintAlphabet(HDC hdc, int x, int y)
 		L"Arial"
 	);
 
-
 	auto restoreOldFont = Finally([hdc, hFont, oldFont = SelectObject(hdc, hFont)]
 								  {
 									  SelectObject(hdc, oldFont);
@@ -346,7 +347,73 @@ void MainView::PaintAlphabet(HDC hdc, int x, int y)
 	}
 }
 
-void MainView::OpenLetter(int x, int y)
+void MainView::PaintButtonToChangeView(HDC hdc, int x, int y)
+{
+	HFONT hFont = CreateFont(
+		16,
+		0,
+		0,
+		0,
+		FW_NORMAL,
+		FALSE,
+		FALSE,
+		FALSE,
+		ANSI_CHARSET,
+		OUT_DEFAULT_PRECIS,
+		CLIP_DEFAULT_PRECIS,
+		DEFAULT_QUALITY,
+		DEFAULT_PITCH | FF_SWISS,
+		L"Arial"
+	);
+	auto restoreOldFont = Finally([hdc, hFont, oldFont = SelectObject(hdc, hFont)]
+								  {
+									  SelectObject(hdc, oldFont);
+									  DeleteObject(hFont);
+								  });
+
+	HPEN pen = CreatePen(PS_SOLID, 2, RGB(100, 100, 100));
+
+	auto restoreOldPen = Finally([hdc, pen, oldPen = SelectObject(hdc, pen)]
+								 {
+									 SelectObject(hdc, oldPen);
+									 DeleteObject(pen);
+								 });
+
+	LOGBRUSH brushInfo;
+	brushInfo.lbStyle = BS_SOLID;
+	brushInfo.lbColor = RGB(50, 50, 50);
+	brushInfo.lbHatch = 0;
+	HBRUSH brush = CreateBrushIndirect(&brushInfo);
+
+	auto restoreOldBrush = Finally([hdc, brush, oldBrush = SelectObject(hdc, brush)]
+								   {
+									   SelectObject(hdc, oldBrush);
+									   DeleteObject(brush);
+								   });
+
+	COLORREF textColor = RGB(250, 250, 250);
+	auto restoreOldColor = Finally([hdc, textColor, oldColor = SetTextColor(hdc, textColor)]
+								   {
+									   SetTextColor(hdc, oldColor);
+								   });
+
+	Rectangle(hdc, x - 510, y - 260, x - 325, y - 220);
+	std::wstring text = L"Переключить вид игры";
+	TextOut(hdc, x - 500, y - 250, text.c_str(), text.length());
+}
+
+void MainView::CheckAndClickToBtn(int x, int y)
+{
+	if (-510 <= x && x <= -326
+		&& -260 <= y && y <= -220)
+	{
+		m_needChangeMenu = true;
+		NotifyObservers();
+		m_needChangeMenu = false;
+	}
+}
+
+void MainView::CheckAndOpenLetter(int x, int y)
 {
 	if (y < 200 || y > 215)
 	{
@@ -370,14 +437,25 @@ void MainView::OpenLetter(int x, int y)
 
 void MainView::NotifyObservers()
 {
+	ViewData data;
+	if (m_needChangeMenu)
+	{
+		data.needChangeView = true;
+	}
+	else
+	{
+		data.lastOpenedChar = m_lastOpenedLetter;
+		data.needChangeView = false;
+	}
+
 	auto observers = m_observers;
 	for (auto* observer : observers)
 	{
-		observer->Update(m_lastOpenedLetter);
+		observer->Update(data);
 	}
 }
 
-void MainView::RemoveObserver(Observer::IObserver<char>& observer)
+void MainView::RemoveObserver(Observer::IObserver<ViewData>& observer)
 {
 	m_observers.erase(&observer);
 }

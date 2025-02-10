@@ -8,7 +8,7 @@
 using namespace View;
 using namespace Model;
 
-class Presentation : public Observer::IObserver<GameChangedData>, public Observer::IObserver<char>
+class Presentation : public Observer::IObserver<GameChangedData>, public Observer::IObserver<ViewData>
 {
 public:
 	Presentation(
@@ -34,7 +34,7 @@ public:
 	bool IsLost() const;
 
 	void Update(GameChangedData data) override;
-	void Update(char data) override;
+	void Update(ViewData data) override;
 
 
 	~Presentation()

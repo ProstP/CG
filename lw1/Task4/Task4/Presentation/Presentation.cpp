@@ -62,9 +62,16 @@ void Presentation::Update(GameChangedData data)
 	}
 }
 
-void Presentation::Update(char data)
+void Presentation::Update(ViewData data)
 {
-	OpenLetter(data);
+	if (data.needChangeView)
+	{
+		ToggleView();
+	}
+	else
+	{
+		OpenLetter(data.lastOpenedChar);
+	}
 }
 
 void Presentation::UpdateInfoForNewView()
@@ -72,6 +79,9 @@ void Presentation::UpdateInfoForNewView()
 	m_currentView->SetMistakeCount(m_gameHandler.GetMistake());
 
 	auto word = m_gameHandler.GetWord();
+	m_currentView->InitAlphabet();
+	m_currentView->InitWord(word.size());
+	m_currentView->SetQuestion(m_gameHandler.GetQuestion());
 
 	for (int i = 0; i < word.size(); i++)
 	{

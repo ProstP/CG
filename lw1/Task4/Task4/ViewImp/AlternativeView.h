@@ -1,6 +1,8 @@
 #pragma once
 #include "../View/IView.h"
 
+using namespace View;
+
 class AlternativeView : public View::IView
 {
 public:
@@ -17,11 +19,11 @@ public:
 
 	bool NeedPaint() const override;
 
-	void RegisterObserver(Observer::IObserver<char>& observer) override;
+	void RegisterObserver(Observer::IObserver<ViewData>& observer) override;
 
 	void NotifyObservers() override;
 
-	void RemoveObserver(Observer::IObserver<char>& observer) override;
+	void RemoveObserver(Observer::IObserver<ViewData>& observer) override;
 
 private:
 	std::string m_question;
@@ -30,14 +32,17 @@ private:
 	int m_mistakeCount = 0;
 	std::vector<std::pair<char, Model::WordStates>> m_alphabet;
 	bool m_needPaint = true;
-	std::set<Observer::IObserver<char>*> m_observers;
+	std::set<Observer::IObserver<ViewData>*> m_observers;
+	bool m_needChangeMenu = false;
 
 	void PaintQuestion(HDC hdc, int x, int y);
 	void PaintWord(HDC hdc, int x, int y);
 	void PaintMistakes(HDC hdc, int x, int y);
 	void PaintAlphabet(HDC hdc, int x, int y);
 	void PaintUsedLetters(HDC hdc, int x, int y);
-	void OpenLetter(int x, int y);
+	void PaintButtonToChangeView(HDC hdc, int x, int y);
+	void CheckAndClickToBtn(int x, int y);
+	void CheckAndOpenLetter(int x, int y);
 	int GetIndexOfLetterInAlphabet(char letter);
 	static std::wstring StringToWstring(const std::string& str);
 	static wchar_t CharToWChar(char ch);
