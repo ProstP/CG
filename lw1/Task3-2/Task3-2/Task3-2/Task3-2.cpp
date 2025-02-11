@@ -2,7 +2,7 @@
 #include "Task3-2.h"
 #include <windowsx.h>
 #include <tchar.h>
-#include "Painter/EllipsePainter.h"
+#include "Painter/CirclePainter.h"
 
 TCHAR const CLASS_NAME[] = _T("MainWndClass");
 TCHAR const WINDOW_TITLE[] = _T("Task2");

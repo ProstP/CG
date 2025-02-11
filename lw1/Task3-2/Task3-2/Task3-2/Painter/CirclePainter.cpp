@@ -1,4 +1,4 @@
-#include "EllipsePainter.h"
+#include "CirclePainter.h"
 #include "../Finalizer/Finalizer.h"
 
 void CirclePainter::PaintCircle(HDC hdc, int screenWidth, int screenHeight) const
