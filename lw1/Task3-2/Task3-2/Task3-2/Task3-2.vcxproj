@@ -129,13 +129,13 @@
   <ItemGroup>
     <ClInclude Include="Finalizer\Finalizer.h" />
     <ClInclude Include="framework.h" />
-    <ClInclude Include="Painter\EllipsePainter.h" />
+    <ClInclude Include="Painter\CirclePainter.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Task3-2.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Painter\EllipsePainter.cpp" />
+    <ClCompile Include="Painter\CirclePainter.cpp" />
     <ClCompile Include="Task3-2.cpp" />
   </ItemGroup>
   <ItemGroup>

@@ -27,7 +27,7 @@
     <ClInclude Include="Task3-2.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
-    <ClInclude Include="Painter\EllipsePainter.h">
+    <ClInclude Include="Painter\CirclePainter.h">
       <Filter>Файлы заголовков</Filter>
     </ClInclude>
     <ClInclude Include="Finalizer\Finalizer.h">
@@ -38,7 +38,7 @@
     <ClCompile Include="Task3-2.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
-    <ClCompile Include="Painter\EllipsePainter.cpp">
+    <ClCompile Include="Painter\CirclePainter.cpp">
       <Filter>Исходные файлы</Filter>
     </ClCompile>
   </ItemGroup>
