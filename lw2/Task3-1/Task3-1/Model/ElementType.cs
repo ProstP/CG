@@ -1,0 +1,37 @@
+﻿namespace Task3_1.Model
+{
+    public enum ElementType
+    {
+        Water,
+        Fire,
+        Air,
+        Earth,
+        Dust,
+        Steam,
+        Lava,
+        Energy,
+        Mud,
+        Rain,
+        Sea,
+        Pressure,
+        Cloud,
+        Ocean,
+        Gunpowder,
+        Stone,
+        Salt,
+        Plant,
+        Explosion,
+        Metal,
+        Sand,
+        Storm,
+        AtomicBomb,
+        Beach,
+        Desert,
+        Electricity,
+        Glass,
+        Wave,
+        Sound,
+        Wind,
+        Smoke,
+    }
+}
