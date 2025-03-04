@@ -1,6 +1,6 @@
 ﻿namespace Painter;
 
-public interface IPainter
+public interface IPainterByBuffer
 {
     void Paint();
 }

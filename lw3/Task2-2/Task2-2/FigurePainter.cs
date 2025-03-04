@@ -2,7 +2,7 @@
 using Painter;
 
 namespace PainterImp;
-public class FigurePainter : IPainter
+public class FigurePainter : IPainterByBuffer
 {
     float _leftOffset;
     float _topOffset;
