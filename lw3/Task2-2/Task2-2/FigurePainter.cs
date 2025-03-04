@@ -47,21 +47,17 @@ public class FigurePainter : IPainter
             2.0f, -2.0f + weadowHeight, 0f, meadowColorR, meadowColorG, meadowColorB,
             2.0f, -2.0f , 0f, meadowColorR, meadowColorG, meadowColorB,
             0f, -2.0f , 0f, meadowColorR, meadowColorG, meadowColorB,
-            0f, -2.0f + weadowHeight , 0f, meadowColorR, meadowColorG, meadowColorB,
             0f, 0f, 0f, skyColorR, skyColorG, skyColorB,
             2.0f, 0f, 0f, skyColorR , skyColorG, skyColorB,
             2.0f, -2.0f + weadowHeight, 0f, skyColorR, skyColorG, skyColorB,
             0f, -2.0f + weadowHeight, 0f, skyColorR, skyColorG, skyColorB,
-            0f, 0f, 0f, skyColorR , skyColorG, skyColorB,
         };
 
         points = AddOffsetToElements(points);
 
         GL.BufferData(BufferTarget.ArrayBuffer, points.Length * sizeof(float), points, BufferUsageHint.StaticDraw);
-        GL.DrawArrays(PrimitiveType.Triangles, 0, 3);
-        GL.DrawArrays(PrimitiveType.Triangles, 2, 3);
-        GL.DrawArrays(PrimitiveType.Triangles, 5, 3);
-        GL.DrawArrays(PrimitiveType.Triangles, 7, 3);
+        GL.DrawArrays(PrimitiveType.TriangleFan, 0, 4);
+        GL.DrawArrays(PrimitiveType.TriangleFan, 4, 4);
     }
     private void DrawClouds()
     {
