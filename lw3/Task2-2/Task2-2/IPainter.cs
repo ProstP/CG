@@ -1,7 +1,7 @@
 ﻿namespace Painter;
 
 // В название не должен быть буфер
-public interface IPainterByBuffer
+public interface IPainter
 {
     void Paint();
 }

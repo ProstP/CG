@@ -10,7 +10,7 @@ public class Game : GameWindow
 {
     Shader _shader;
     Matrix4 _projection;
-    List<IPainterByBuffer> _painters = new();
+    List<IPainter> _painters = new();
 
     public Game(int width, int height, string title)
         : base(GameWindowSettings.Default, new NativeWindowSettings()
@@ -21,7 +21,7 @@ public class Game : GameWindow
     {
     }
 
-    public void AddPainter(IPainterByBuffer painter)
+    public void AddPainter(IPainter painter)
     {
         _painters.Add(painter);
     }
