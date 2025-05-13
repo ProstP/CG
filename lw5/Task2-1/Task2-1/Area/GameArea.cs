@@ -190,7 +190,7 @@ public class GameArea
             modelMatrix,
             new Vector2(width, height));
 
-        vector.Y -= 0.1f;
+        vector.Y -= 0.07f;
 
         if (CheckIsClickToCell(vector, out CellView cell))
         {
